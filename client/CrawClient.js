@@ -16,6 +16,7 @@ const crawClient = feignjs.builder()
     defaults: {
     }
   }))
-  .target(crawClientDescription, 'http://27.74.147.126:1723');
+  .target(crawClientDescription, 'http://27.74.147.126:11371');
+  //.target(crawClientDescription, 'http://localhost:8080');
 
 module.exports = crawClient;
