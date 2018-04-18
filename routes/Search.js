@@ -13,11 +13,11 @@ router.get('/q/:query', function (req, res, next) {
   let queryRegex = new RegExp('.*' + query + '.*', 'i');
   const page = req.query.page ? parseInt(req.query.page) : 1;
   const limit = req.query.size ? parseInt(req.query.size) : 32;
-
+  
   const promises = [];
-
+  
   promises.push(new Promise(function (resolve, reject) {
-    Movie.paginate({
+    Actor.paginate({
       title: new RegExp('.*' + query + '.*', 'i')
     }, {
       sort: {title: 1},
@@ -31,10 +31,15 @@ router.get('/q/:query', function (req, res, next) {
       }
     });
   }));
-
+  
   promises.push(new Promise(function (resolve, reject) {
     Item.paginate({
-      $or: [{normTitle: queryRegex}, {normSubTitle: queryRegex}],
+      $or: [
+        {title: queryRegex},
+        {normTitle: queryRegex},
+        {subTitle: queryRegex},
+        {normSubTitle: queryRegex}
+      ],
       type: 'MOVIE',
     }, {
       select: 'id title subTitle poster genres actors',
@@ -49,10 +54,14 @@ router.get('/q/:query', function (req, res, next) {
       }
     });
   }));
-
+  
   promises.push(new Promise(function (resolve, reject) {
     Item.paginate({
-      $or : [{normTitle: queryRegex}, {normSubTitle: queryRegex}],
+      $or: [
+        {title: queryRegex},
+        {normTitle: queryRegex},
+        {subTitle: queryRegex},
+        {normSubTitle: queryRegex}],
       type: 'SERIE',
     }, {
       select: 'id title subTitle poster genres actors',
@@ -67,7 +76,7 @@ router.get('/q/:query', function (req, res, next) {
       }
     });
   }));
-
+  
   Promise.all(promises).then(result => {
     res.json(Object.assign(...result));
   }).catch(err => {
@@ -82,7 +91,7 @@ router.get('/remote/q/:query', function (req, res, next) {
   const postData = 'status=search_page&q=' + query;
   console.log(cookieService.getCookieHeader());
   console.log(postData);
-
+  
   vungTvClient.search(postData).then((result) => {
     const items = [];
     const $ = cheerio.load(JSON.parse(result).data_html);
@@ -95,9 +104,9 @@ router.get('/remote/q/:query', function (req, res, next) {
         link: a.attr('href')
       })
     });
-
+    
     const promises = items.map(item => new Promise((resolve, reject) => {
-      const hash = crypto.createHash('md5').update(item.link).digest("hex");
+      const hash = crypto.createHash('md5').update(item.link).digest('hex');
       Item.find({hash: hash}, function (err, items) {
         if (err) {
           reject(err);

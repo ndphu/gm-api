@@ -3,7 +3,7 @@ const Item = require('../models/Item');
 const Category = require('../models/Category');
 const router = express.Router();
 const DEFAULT_FIELDS = 'id title poster genres actors';
-const DEFAULT_SECTION_ITEM_COUNT = 7;
+const DEFAULT_SECTION_ITEM_COUNT = 12;
 const DEFAULT_ORDER = {createdAt: -1};
 
 router.get('/', (req, res) => {

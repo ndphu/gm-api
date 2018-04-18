@@ -4,14 +4,14 @@ const Actor = require('../models/Actor');
 const Item = require('../models/Item');
 
 router.get('/:id', function (req, res, next) {
-  Movie.findById(req.params.id, function (err, track) {
+  Actor.findById(req.params.id, function (err, track) {
     if (err) return next(err);
     res.json(track);
   })
 });
 
 router.get('/byKey/:actorKey', function (req, res, next) {
-  Movie.find({
+  Actor.find({
     key: req.params.actorKey
   }, function (err, resp) {
     if (err) return next(err);
@@ -20,7 +20,7 @@ router.get('/byKey/:actorKey', function (req, res, next) {
 });
 
 router.get('/:id/items', function (req, res, next) {
-  Movie.findById(req.params.id, function (err, actor) {
+  Actor.findById(req.params.id, function (err, actor) {
     if (err) return next(err);
     Item.paginate({
       actors: actor.title
