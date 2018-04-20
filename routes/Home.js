@@ -3,7 +3,7 @@ const Item = require('../models/Item');
 const Category = require('../models/Category');
 const router = express.Router();
 const DEFAULT_FIELDS = 'id title poster genres actors';
-const DEFAULT_SECTION_ITEM_COUNT = 12;
+const DEFAULT_SECTION_ITEM_COUNT = 64;
 const DEFAULT_ORDER = {createdAt: -1};
 
 router.get('/', (req, res) => {
@@ -26,11 +26,11 @@ router.get('/', (req, res) => {
       })
     );
 
-    result.docs.forEach((section) => {
-      promises.push(
-        getCustomSection({genres: section.title}, section)
-      );
-    });
+    // result.docs.forEach((section) => {
+    //   promises.push(
+    //     getCustomSection({genres: section.title}, section)
+    //   );
+    // });
 
     Promise.all(promises).then((sections) => {
       res.json(sections.filter(s => s.items.length > 0));

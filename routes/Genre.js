@@ -12,7 +12,7 @@ router.get('/:id', function (req, res, next) {
 
 router.get('/:id/items', function (req, res, next) {
   Category.findById(req.params.id, (err, genre) => {
-    if (err)return next(err);
+    if (err) return next(err);
     Item.paginate({
       genres: genre.title,
     }, {
