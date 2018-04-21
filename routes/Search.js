@@ -6,6 +6,7 @@ const vungTvClient = require('../client/VungTv');
 const cheerio = require('cheerio');
 const cookieService = require('../services/CookieService');
 const crypto = require('crypto');
+const BanhTVClient = require('../client/BanhTV');
 
 router.get('/q/:query', function (req, res, next) {
   const query = req.params.query;
@@ -88,48 +89,68 @@ router.get('/q/:query', function (req, res, next) {
 
 router.get('/remote/q/:query', function (req, res, next) {
   const query = req.params.query;
-  const postData = 'status=search_page&q=' + query;
-  console.log(cookieService.getCookieHeader());
-  console.log(postData);
-  
-  vungTvClient.search(postData).then((result) => {
-    const items = [];
-    const $ = cheerio.load(JSON.parse(result).data_html);
-    $('.film-small').each(function () {
-      const a = $(this);
-      items.push({
-        title: a.find('.title-film-small .title-film').text(),
-        subTitle: a.find('.title-film-small p').text(),
-        poster: a.find('.poster-film-small').attr('style').split(/[()]/)[1],
-        link: a.attr('href')
-      })
-    });
-    
-    const promises = items.map(item => new Promise((resolve, reject) => {
-      const hash = crypto.createHash('md5').update(item.link).digest('hex');
-      Item.find({hash: hash}, function (err, items) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({
-            title: item.title,
-            subTitle: item.subTitle,
-            poster: item.poster,
-            link: item.link,
-            itemId: items.length > 0 ? items[0]._id : null,
-          })
-        }
-      })
-    }));
-    Promise.all(promises).then(items => res.send(items));
-  }).catch((reason) => {
-    console.log(reason);
-    res.status(500);
-    res.send({
-      query: query,
-      err: reason
+  console.log(req.query);
+  if (req.query.source === '1') {
+    console.log('searching banhtv...');
+    BanhTVClient.search(query).then((result) => {
+      const items = [];
+      const $ = cheerio.load(result);
+      $('ul.list-film li.item a').each((i, e) => {
+        const element = $(e);
+        items.push({
+          title: element.attr('title'),
+          subTitle: element.attr('title'),
+          poster: element.find('img').attr('src'),
+          link: 'http://banhtv.com' + element.attr('href'),
+        })
+      });
+      res.send(items);
     })
-  })
+  } else {
+    const postData = 'status=search_page&q=' + query;
+    console.log(cookieService.getCookieHeader());
+    console.log(postData);
+    vungTvClient.search(postData).then((result) => {
+      const items = [];
+      const $ = cheerio.load(JSON.parse(result).data_html);
+      $('.film-small').each(function () {
+        const a = $(this);
+        items.push({
+          title: a.find('.title-film-small .title-film').text(),
+          subTitle: a.find('.title-film-small p').text(),
+          poster: a.find('.poster-film-small').attr('style').split(/[()]/)[1],
+          link: a.attr('href')
+        })
+      });
+
+      const promises = items.map(item => new Promise((resolve, reject) => {
+        const hash = crypto.createHash('md5').update(item.link).digest('hex');
+        Item.find({hash: hash}, function (err, items) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({
+              title: item.title,
+              subTitle: item.subTitle,
+              poster: item.poster,
+              link: item.link,
+              itemId: items.length > 0 ? items[0]._id : null,
+            })
+          }
+        })
+      }));
+      Promise.all(promises).then(items => res.send(items));
+    }).catch((reason) => {
+      console.log(reason);
+      res.status(500);
+      res.send({
+        query: query,
+        err: reason
+      })
+    })
+  }
+
+
 });
 
 module.exports = router;
