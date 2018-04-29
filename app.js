@@ -15,6 +15,13 @@ const requestRouter = require('./routes/Request');
 const manageRouter = require('./routes/Manage');
 const itemRouter = require('./routes/Item');
 
+const mqttService = require('./services/MQTTService');
+
+if (!mqttService.isConnected()) {
+  console.log('connecting to broker...');
+  mqttService.connect();
+}
+
 const app = express();
 app.use(cors());
 

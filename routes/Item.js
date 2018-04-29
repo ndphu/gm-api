@@ -79,7 +79,8 @@ reloadItem = (item) => {
         if (err) {
           reject(err);
         } else {
-          crawService.crawUrl(item.playUrl).then(crawResult => {
+          //crawService.crawUrl(item.playUrl).then(crawResult => {
+          crawService.crawUrlMQTT(item.playUrl).then(crawResult => {
             new Episode({
               title: item.title,
               subTitle: item.subTitle,

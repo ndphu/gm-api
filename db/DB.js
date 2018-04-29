@@ -6,7 +6,7 @@ mongoose.Promise = global.Promise;
 
 const appEnv = cfenv.getAppEnv();
 if (appEnv.isLocal) {
-  mongoose.connect('mongodb://27.74.147.126:5050/gm');
+  mongoose.connect(process.env.MONGODB_URI);
 } else {
   mongoose.connect(appEnv.services.mlab[0].credentials.uri);
 }

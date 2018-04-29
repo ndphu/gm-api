@@ -4,6 +4,7 @@ const cheerio = require('cheerio');
 const Episode = require('../models/Episode');
 const url = require('url');
 const BanhTV = require('../client/BanhTV');
+const mqttService = require('../services/MQTTService');
 
 
 class CrawService {
@@ -25,6 +26,31 @@ class CrawService {
       crawClient.craw(postData).then(result => {
         resolve(JSON.parse(result)[0]);
       }).catch(reject)
+    });
+  }
+
+  crawUrlMQTT(crawUrl) {
+    console.log(`craw url {} using mqtt`, crawUrl);
+    const requestId = new Date().getTime();
+    const respTopic = `/topic/crawler/response/${requestId}`;
+    console.log(`using response topic ${respTopic}`);
+    const requestMessage = {
+      responseTo: `${requestId}`,
+      items: [{
+        id: `${requestId}`,
+        input: crawUrl,
+      }]
+    };
+    return new Promise((resolve, reject) => {
+      mqttService.getClient().subscribe(respTopic);
+      console.log(`subscribed to response topic ${respTopic}`);
+      mqttService.getClient().on('message', (topic, message) => {
+        if (respTopic === topic) {
+          console.log(`got response from ${respTopic}`);
+          resolve(JSON.parse(message.toString())[0]);
+        }
+      });
+      mqttService.getClient().publish('/topic/crawler/request', JSON.stringify(requestMessage));
     });
   }
   

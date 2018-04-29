@@ -17,7 +17,8 @@ router.get('/:id/reload', (req, res, next) => {
       console.log(err);
       next(err);
     } else if (episode) {
-      crawService.crawUrl(episode.crawUrl).then(crawResult => {
+      //crawService.crawUrl(episode.crawUrl).then(crawResult => {
+      crawService.crawUrlMQTT(episode.crawUrl).then(crawResult => {
         episode.videoSource = crawResult.result;
         episode.save().then(() => {
           res.send(episode);
